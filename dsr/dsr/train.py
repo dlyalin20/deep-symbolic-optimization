@@ -494,6 +494,8 @@ def learn(sess, controller, pool,
 
     # Return statistics of best Program
     p = p_final if p_final is not None else p_base_r_best
+    #ignore_this = np.arange(0, 1000)
+    #print(p.python_execute(ignore_this))
     result = {
         "r" : p.r,
         "base_r" : p.base_r,

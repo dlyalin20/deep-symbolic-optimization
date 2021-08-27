@@ -49,7 +49,7 @@ def _finish_tokens(tokens):
 
 def from_str_tokens(str_tokens, optimize, skip_cache=False):
     """
-    Memoized function to generate a Program from a list of str and/or float.
+    Memorized function to generate a Program from a list of str and/or float.
     See from_tokens() for details.
 
     Parameters
@@ -104,7 +104,7 @@ def from_str_tokens(str_tokens, optimize, skip_cache=False):
 
 def from_tokens(tokens, optimize, skip_cache=False):
     """
-    Memoized function to generate a Program from a list of tokens.
+    Memorized function to generate a Program from a list of tokens.
 
     Since some tokens are nonfunctional, this first computes the corresponding
     traversal. If that traversal exists in the cache, the corresponding Program
@@ -283,6 +283,7 @@ class Program(object):
         # if isinstance(node, int):
         #     return X[:, node]
 
+        #print(X)
         apply_stack = []
 
         for node in self.traversal:

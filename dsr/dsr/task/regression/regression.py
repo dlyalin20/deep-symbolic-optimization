@@ -6,6 +6,23 @@ from dsr.library import Library
 from dsr.functions import create_tokens
 from dsr.task.regression.dataset import BenchmarkDataset
 
+""" def check_convexity(y_pred, x_real): # [1, 2, 4, 10] => [1, 2, 6]
+    dy = np.diff(y_pred, 1)
+    dx = np.diff(x_real, 1)
+    yfirst = dy / dx
+    xfirst = 0.5*(x_real[:-1]+x_real[1:])
+    dyfirst = np.diff(yfirst, 1)
+    dxfirst = np.diff(xfirst, 1)
+    ysecond = dyfirst / dxfirst # -1, 4, 1
+
+    counter = len(list(filter(lambda v : v > 0, ysecond)))   
+
+    return 1 - counter / len(ysecond) 
+    
+    "convexity" : (lambda y, y_hat : check_convexity(y_hat, X_train) * 1/(1 + args[0]*np.sqrt(np.mean((y - y_hat)**2)/var_y)),
+                        1)
+    
+    """
 
 def make_regression_task(name, function_set, dataset, metric="inv_nrmse",
     metric_params=(1.0,), extra_metric_test=None, extra_metric_test_params=(),
@@ -65,7 +82,6 @@ def make_regression_task(name, function_set, dataset, metric="inv_nrmse",
     task : Task
         Dynamically created Task object whose methods contains closures.
     """
-
     X_test = y_test = y_test_noiseless = None
 
     # Benchmark dataset config
@@ -107,7 +123,7 @@ def make_regression_task(name, function_set, dataset, metric="inv_nrmse",
     var_y_test_noiseless = np.var(y_test_noiseless)
 
     # Define closures for metric
-    metric, invalid_reward, max_reward = make_regression_metric(metric, y_train, *metric_params)
+    metric, invalid_reward, max_reward = make_regression_metric(metric, y_train, X_train, *metric_params)
     if extra_metric_test is not None:
         print("Setting extra test metric to {}.".format(extra_metric_test))
         metric_test, _, _ = make_regression_metric(extra_metric_test, y_test, *extra_metric_test_params) 
@@ -216,7 +232,7 @@ def make_regression_task(name, function_set, dataset, metric="inv_nrmse",
     return task
 
 
-def make_regression_metric(name, y_train, *args):
+def make_regression_metric(name, y_train, X_train, *args):
     """
     Factory function for a regression metric. This includes a closures for
     metric parameters and the variance of the training data.
@@ -296,6 +312,9 @@ def make_regression_metric(name, y_train, *args):
         "inv_nrmse" :    (lambda y, y_hat : 1/(1 + args[0]*np.sqrt(np.mean((y - y_hat)**2)/var_y)),
                         1),
 
+        "l2_norm_inv_nrmse":  (lambda y, y_hat : np.sum(np.power((y-y_hat),2)) * 1/(1 + args[0]*np.sqrt(np.mean((y - y_hat)**2)/var_y)),
+                        1),
+
         # Fraction of predicted points within p0*abs(y) + p1 band of the true value
         # Range: [0, 1]
         "fraction" :    (lambda y, y_hat : np.mean(abs(y - y_hat) < args[0]*abs(y) + args[1]),
@@ -328,9 +347,11 @@ def make_regression_metric(name, y_train, *args):
         "inv_mse" : 0.0, #1/(1 + args[0]*var_y),
         "inv_nmse" : 0.0, #1/(1 + args[0]),
         "inv_nrmse" : 0.0, #1/(1 + args[0]),
+        "l2_norm_inv_nrmse" : 0.0, # ^^
         "fraction" : 0.0,
         "pearson" : 0.0,
         "spearman" : 0.0
+        # "convexity" : 0.0
     }
     invalid_reward = all_invalid_rewards[name]
 
@@ -343,9 +364,11 @@ def make_regression_metric(name, y_train, *args):
         "inv_mse" : 1.0,
         "inv_nmse" : 1.0,
         "inv_nrmse" : 1.0,
+        "l2_norm_inv_nrmse" : 1.0, 
         "fraction" : 1.0,
         "pearson" : 1.0,
         "spearman" : 1.0
+        # "convexity" : 1.0
     }
     max_reward = all_max_rewards[name]
 

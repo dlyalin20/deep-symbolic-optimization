@@ -61,6 +61,7 @@ class DeepSymbolicOptimizer():
                        self.controller,
                        self.pool,
                        **self.config_training)
+        #print(result)
         return result
 
     def update_config(self, config):
